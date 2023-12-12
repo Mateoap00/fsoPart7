@@ -1,1 +1,1 @@
-# My base config for Vite+React+JS+SWC
+# routed-anecdotes
