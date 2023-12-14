@@ -1,120 +1,12 @@
-import { Link, Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useMatch } from 'react-router-dom';
 import { useState } from 'react';
-
-// 7.1: routed anecdotes, step1
-// Add React Router to the application so that by clicking links in the Menu component the view can be changed.
-const Menu = () => {
-    const padding = {
-        paddingRight: 5,
-    };
-    return (
-        <div>
-            <Link to="/" style={padding}>
-                Anecdotes
-            </Link>
-            <span>| </span>
-            <Link to="/create-new" style={padding}>
-                Create New
-            </Link>
-            <span>| </span>
-            <Link to="/about" style={padding}>
-                About
-            </Link>
-        </div>
-    );
-};
-
-const AnecdoteList = ({ anecdotes }) => (
-    <div>
-        <h2>Anecdotes</h2>
-        <ul>
-            {anecdotes.map((anecdote) => (
-                <li key={anecdote.id}>{anecdote.content}</li>
-            ))}
-        </ul>
-    </div>
-);
-
-const About = () => (
-    <div>
-        <h2>About anecdote app</h2>
-        <p>According to Wikipedia:</p>
-
-        <em>
-            An anecdote is a brief, revealing account of an individual person or an
-            incident. Occasionally humorous, anecdotes differ from jokes because their
-            primary purpose is not simply to provoke laughter but to reveal a truth more
-            general than the brief tale itself, such as to characterize a person by
-            delineating a specific quirk or trait, to communicate an abstract idea about a
-            person, place, or thing through the concrete details of a short narrative. An
-            anecdote is `&quot`a story with a point`&quot`.
-        </em>
-
-        <p>
-            Software engineering is full of excellent anecdotes, at this app you can find
-            the best and add more.
-        </p>
-    </div>
-);
-
-const Footer = () => (
-    <div>
-        Anecdote app for <a href="https://fullstackopen.com/">Full Stack Open</a>. See{' '}
-        <a href="https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js">
-            https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js
-        </a>{' '}
-        for the source code.
-    </div>
-);
-
-const CreateNew = (props) => {
-    const [content, setContent] = useState('');
-    const [author, setAuthor] = useState('');
-    const [info, setInfo] = useState('');
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        props.addNew({
-            content,
-            author,
-            info,
-            votes: 0,
-        });
-    };
-
-    return (
-        <div>
-            <h2>create a new anecdote</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    content
-                    <input
-                        name="content"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                    />
-                </div>
-                <div>
-                    author
-                    <input
-                        name="author"
-                        value={author}
-                        onChange={(e) => setAuthor(e.target.value)}
-                    />
-                </div>
-                <div>
-                    url for more info
-                    <input
-                        name="info"
-                        value={info}
-                        onChange={(e) => setInfo(e.target.value)}
-                    />
-                </div>
-                <button>create</button>
-            </form>
-        </div>
-    );
-};
+import Menu from './components/Menu';
+import Notification from './components/Notification';
+import AnecdoteList from './components/AnecdoteList';
+import Anecdote from './components/Anecdote';
+import CreateNew from './components/CreateNew';
+import About from './components/About';
+import Footer from './components/Footer';
 
 const App = () => {
     const [anecdotes, setAnecdotes] = useState([
@@ -134,35 +26,63 @@ const App = () => {
         },
     ]);
 
-    const navigate = useNavigate();
+    // 7.2: routed anecdotes, step2
+    // Implement a view for showing a single anecdote.
+    const match = useMatch('/anecdotes/:id');
+    const anecdote = match
+        ? anecdotes.find((anecdote) => anecdote.id === Number(match.params.id))
+        : null;
 
+    // 7.3: routed anecdotes, step3
+    // After creating a new anecdote the application transitions automatically to showing the view for all anecdotes
+    // and the user is shown a notification informing them of this successful creation for the next five seconds.
+    const navigate = useNavigate();
     const [notification, setNotification] = useState('');
 
     const addNew = (anecdote) => {
         anecdote.id = Math.round(Math.random() * 10000);
         setAnecdotes(anecdotes.concat(anecdote));
+        showNotification(`A new anecdote "${anecdote.content}" created!`);
         navigate('/');
     };
 
-    const anecdoteById = (id) => anecdotes.find((a) => a.id === id);
-
-    const vote = (id) => {
-        const anecdote = anecdoteById(id);
-
-        const voted = {
-            ...anecdote,
-            votes: anecdote.votes + 1,
-        };
-
-        setAnecdotes(anecdotes.map((a) => (a.id === id ? voted : a)));
+    const showNotification = (msg) => {
+        setNotification(msg);
+        setTimeout(() => {
+            setNotification('');
+        }, 5000);
     };
 
+    // const anecdoteById = (id) => anecdotes.find((a) => a.id === id);
+
+    // const vote = (id) => {
+    //     const anecdote = anecdoteById(id);
+
+    //     const voted = {
+    //         ...anecdote,
+    //         votes: anecdote.votes + 1,
+    //     };
+
+    //     setAnecdotes(anecdotes.map((a) => (a.id === id ? voted : a)));
+    // };
+
+    // 7.1: routed anecdotes, step1
+    // Add React Router to the application so that by clicking links in the Menu component the view can be changed.
     return (
         <div>
             <h1>Software anecdotes</h1>
             <Menu />
+            <Notification msg={notification} />
             <Routes>
                 <Route path="/" element={<AnecdoteList anecdotes={anecdotes} />}></Route>
+                <Route
+                    path="/anecdotes"
+                    element={<AnecdoteList anecdotes={anecdotes} />}
+                ></Route>
+                <Route
+                    path="/anecdotes/:id"
+                    element={<Anecdote anecdote={anecdote} />}
+                ></Route>
                 <Route path="/create-new" element={<CreateNew addNew={addNew} />}></Route>
                 <Route path="/about" element={<About />}></Route>
             </Routes>
