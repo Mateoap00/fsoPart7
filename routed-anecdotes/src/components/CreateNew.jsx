@@ -27,21 +27,27 @@ const CreateNew = (props) => {
         info.reset();
     };
 
+    // 7.6: anecdotes and hooks step3
+    // Make the necessary changes to get rid of the Invalid value for prop `reset` on <input> tag console warning.
+    const contentField = { ...content, reset: undefined };
+    const authorField = { ...author, reset: undefined };
+    const infoField = { ...info, reset: undefined };
+
     return (
         <div>
             <h2>Create a new anecdote</h2>
             <form onSubmit={handleSubmit}>
                 <div>
                     content:
-                    <input {...content} />
+                    <input {...contentField} />
                 </div>
                 <div>
                     author:
-                    <input {...author} />
+                    <input {...authorField} />
                 </div>
                 <div>
                     url for more info
-                    <input {...info} />
+                    <input {...infoField} />
                 </div>
                 <button type="submit">Create</button>
                 <button onClick={handleReset}>Reset</button>
